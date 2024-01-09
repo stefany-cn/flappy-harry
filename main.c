@@ -16,6 +16,8 @@
 #define TRUE 1
 #define FALSE 0
 
+//oi!
+
 typedef struct Torre_str {
     Rectangle recTorre;
     Texture2D textura;
