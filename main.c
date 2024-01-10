@@ -59,9 +59,11 @@ static Texture2D dementador;
 
 
 void iniciaJogo(void){
+    background = LoadTexture("sprites/background-min.png");
     carregaTextJog();
     carregaTextObstaculos();
     criaPosicaoObstaculos();
+
 
     harry.score = 0;
     gameOver = FALSE;
@@ -70,9 +72,9 @@ void iniciaJogo(void){
 }
 
 void carregaTextJog(void){
-    Image harryImage = LoadImage("sprites/harry-broomstick.png");
-    harry.jogador = LoadTextureFromImage(harryImage);
-    UnloadImage(harryImage);
+    //Image harryImage = LoadImage("sprites/harry-broomstick.png");
+    harry.jogador = LoadTexture("sprites/harry-broomstick.png");
+    //UnloadImage(harryImage);
     harry.posicao = (Vector2){POS_INIC_JOG_X, POS_INIC_JOG_Y};
     harry.areaJogador.height = 0.5 * (harry.jogador.height);
     harry.areaJogador.width = 0.5 * (harry.jogador.width);
@@ -117,7 +119,7 @@ void criaPosicaoObstaculos(void){
         torresPos[i].y = GetRandomValue(MIN_ALT_TORRE, MAX_ALT_TORRE);
 
         dementadorPos[i].x = 500 + 250*i;
-        dementadorPos[i].y = GetRandomValue(0, 300);
+        dementadorPos[i].y = GetRandomValue(0, 250);
     }
     for(i = 0, j = 0; i < MAX_QTD_TORRES; i++, j++){
         if(j > 3){
@@ -146,12 +148,11 @@ void criaPosicaoObstaculos(void){
 }
 void desenhaObstaculos(void){
     int i = 0;
-    for(i = 0; i < MAX_QTD_TORRES; i++){
-           // printf("posicao torre draw %d: %d %d\n",i, listaTorres[i].posicao.x, listaTorres[i].posicao.y);
-            DrawTextureEx(listaTorres[i].textura,listaTorres[i].posicao, 0, 0.6, WHITE);
-            DrawTextureEx(listaDementadores[i].textura,listaDementadores[i].posicao, 0, 0.2, WHITE);
-            //DrawRectangleRec(listaDementadores[i].recDementador, WHITE);
 
+    for(i = 0; i < MAX_QTD_TORRES; i++){
+        DrawTextureEx(listaTorres[i].textura,listaTorres[i].posicao, 0, 0.6, WHITE);
+        DrawTextureEx(listaDementadores[i].textura,listaDementadores[i].posicao, 0, 0.2, WHITE);
+        //DrawRectangleRec(listaDementadores[i].recDementador, WHITE);
     }
 }
 
@@ -174,8 +175,6 @@ void checaColisao(void){
     int i = 0;
     for (i = 0; i < MAX_QTD_TORRES; i++){
 
-        //printf("area rec torre %d: %f %f %f %f\n",i, listaTorres[i].recTorre.height, listaTorres[i].recTorre.width, listaTorres[i].recTorre.x, listaTorres[i].recTorre.y);
-        //printf("posicao torre %d: %f %f\n",i, listaTorres[i].posicao.x, listaTorres[i].posicao.y);
         if (CheckCollisionRecs(harry.areaJogador, listaTorres[i].recTorre) || CheckCollisionRecs(harry.areaJogador, listaDementadores[i].recDementador)){
 
             gameOver = TRUE;
@@ -190,16 +189,19 @@ void checaColisao(void){
         }
     }
 }
+void desenhaBackground(void){
 
+    DrawTexture(background, 0, 0, RAYWHITE);
+}
 void desenhaJogo(void){
-    background = LoadTexture("sprites/background.png");
+
 
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
 
     if (!gameOver){
-        DrawTexture(background, 0, 0, WHITE);
+        desenhaBackground();
         desenhaJogador();
         desenhaObstaculos();
     } else {
@@ -215,22 +217,19 @@ void jogoPorFrame(void){
         atualizaPosObstaculos();
         if (IsKeyDown(KEY_SPACE) && !gameOver){
             harry.rotationJogador = 0;
-            if(harry.posicao.y = 0){
-                harry.posicao.y = 0;
+            if (harry.posicao.y >= 780){
+                harry.posicao.y = 780;
             }
-            harry.posicao.y -= 10;
+            harry.posicao.y -= 1;
             harry.areaJogador.y = harry.posicao.y;
 
-        } else if (harry.posicao.y >= 800){
+        } else if(harry.posicao.y <= 0){
                 gameOver = TRUE;
-            } else {
-            harry.posicao.y += 3;
+        } else {
+            harry.posicao.y += 1;
             harry.areaJogador.y = harry.posicao.y;
-           // printf("\n\n***");
-           // printJogador(harry);
-            //printf("***\n\n");
             if(harry.rotationJogador >= 0 && harry.rotationJogador < 90){
-                harry.rotationJogador += 0.5;
+                harry.rotationJogador += 0.3;
             } else if (harry.rotationJogador = 90){
                 harry.rotationJogador = 90;
             }
@@ -248,15 +247,22 @@ void atualizaJogo(void){
     desenhaJogo();
 }
 void unloadGame(void){
-
+    UnloadTexture(background);
+    UnloadTexture(harry.jogador);
+    UnloadTexture(texturaTorres[0]);
+    UnloadTexture(texturaTorres[1]);
+    UnloadTexture(texturaTorres[2]);
+    UnloadTexture(texturaTorres[3]);
+    UnloadTexture(dementador);
 }
 
 int main(void){
 
     //Inicializa��o da janela do jogo
     InitWindow(MAX_WIDTH, MAX_HEIGHT,"Flappy Harry");
-
+    SetTargetFPS(60);
     iniciaJogo();
+
     while(!WindowShouldClose()){
 
         atualizaJogo();
