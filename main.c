@@ -44,6 +44,10 @@ typedef struct Jogador_str {
 
 }JOGADOR;
 
+typedef struct Menu_str{
+    Rectangle recMenu;
+}MENU;
+
 //Declara��o de vari�vel est�tica para poder usar em todas as fun��es mantendo o valor dela ao sair da fun��o
 static Vector2 torresPos[MAX_QTD_TORRES] = {0};
 static TORRE listaTorres[MAX_QTD_TORRES] = {0};
@@ -55,18 +59,66 @@ static JOGADOR harry = {0};
 static Texture2D background;
 static Texture2D texturaTorres[4] = {0};
 static Texture2D dementador;
+static int menuOption = 0;
+static char* menuOptions[3];
+static Rectangle recMenuOptions[3];
 
+int menuPrincipal(void) {
+    int i = 0;
+    char* menuOptions[] = {"Start Game", "Options", "Exit"};
 
+    for (i = 0; i < 3; i++) {
+       recMenuOptions[i] = {MAX_WIDTH / 2 - MeasureText(menuOptions[i], 20) / 2,
+                              200 + i * 50 - 10, MeasureText(menuOptions[i], 20), 30};
+    }
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        int mouseX = GetMouseX();
+        int mouseY = GetMouseY();
+        for(i = 0; i < 3; i++){
+            if (CheckCollisionPointRec((Vector2){mouseX, mouseY}, recMenuOptions[i])) {
+               menuOption = i;
+            }
+        }
+    }
 
+    for (i = 0; i < 3; i++) {
+        if (i == menuOption) {
+            DrawText(menuOptions[i], MAX_WIDTH / 2 - MeasureText(menuOptions[i], 20) / 2, 200 + i * 50, 20, RED);
+        } else {
+            DrawText(menuOptions[i], MAX_WIDTH / 2 - MeasureText(menuOptions[i], 20) / 2, 200 + i * 50, 20, BLACK);
+        }
+    }
+    return menuOption;
+}
+int carregaMenuPrincipal(void){
+    int menuOption = 0;
+    menuOption = menuPrincipal();
+
+    return menuOption;
+}
 void iniciaJogo(void){
-    background = LoadTexture("sprites/background-min.png");
-    carregaTextJog();
-    carregaTextObstaculos();
-    criaPosicaoObstaculos();
+    int menuOption;
+    menuOption = carregaMenuPrincipal();
+    if (menuOption == 0){
+        background = LoadTexture("sprites/background-min.png");
+        carregaTextJog();
+        carregaTextObstaculos();
+        criaPosicaoObstaculos();
+    }
 
 
     harry.score = 0;
     gameOver = FALSE;
+
+
+}
+
+void desenhaMenu(void){
+    DrawRectangle(MAX_WIDTH/2, MAX_HEIGHT/2, 100, 50, WHITE);
+
+}
+
+void menuJogo(void){
 
 
 }
@@ -86,7 +138,7 @@ void carregaTextJog(void){
 
 
 void desenhaJogador(void){
-    //DrawRectangleRec(harry.areaJogador,WHITE);
+    DrawRectangleRec(harry.areaJogador,WHITE);
     DrawTexturePro(harry.jogador,
                    (Rectangle){0, 0, harry.jogador.width, harry.jogador.height},
                    (Rectangle){harry.posicao.x, harry.posicao.y, harry.jogador.width/2, harry.jogador.height/2},
@@ -116,10 +168,10 @@ void criaPosicaoObstaculos(void){
     for (i = 0; i < MAX_QTD_TORRES; i++){
         //posi��o x =  come�a em 500px e a pr�xima torre vem 250px depois
         torresPos[i].x = 500 + 250*i;
-        torresPos[i].y = GetRandomValue(MIN_ALT_TORRE, MAX_ALT_TORRE);
+        torresPos[i].y = GetRandomValue(450, 650);
 
         dementadorPos[i].x = 500 + 250*i;
-        dementadorPos[i].y = GetRandomValue(0, 250);
+        dementadorPos[i].y = 800 - listaTorres[i].recTorre.height - torresPos[i].y - 200;
     }
     for(i = 0, j = 0; i < MAX_QTD_TORRES; i++, j++){
         if(j > 3){
@@ -151,8 +203,9 @@ void desenhaObstaculos(void){
 
     for(i = 0; i < MAX_QTD_TORRES; i++){
         DrawTextureEx(listaTorres[i].textura,listaTorres[i].posicao, 0, 0.6, WHITE);
+
         DrawTextureEx(listaDementadores[i].textura,listaDementadores[i].posicao, 0, 0.2, WHITE);
-        //DrawRectangleRec(listaDementadores[i].recDementador, WHITE);
+        DrawRectangleRec(listaDementadores[i].recDementador, WHITE);
     }
 }
 
