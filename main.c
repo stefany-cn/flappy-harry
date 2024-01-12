@@ -59,79 +59,74 @@ static JOGADOR harry = {0};
 static Texture2D background;
 static Texture2D texturaTorres[4] = {0};
 static Texture2D dementador;
-static int menuOption = 0;
+static int menuOption = -1;
 static char* menuOptions[3];
 static Rectangle recMenuOptions[3];
 
+
 int menuPrincipal(void) {
     int i = 0;
-    char* menuOptions[] = {"Start Game", "Options", "Exit"};
 
-    for (i = 0; i < 3; i++) {
-       recMenuOptions[i] = {MAX_WIDTH / 2 - MeasureText(menuOptions[i], 20) / 2,
-                              200 + i * 50 - 10, MeasureText(menuOptions[i], 20), 30};
-    }
+
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        int mouseX = GetMouseX();
-        int mouseY = GetMouseY();
+        Vector2 mousePos = GetMousePosition();
+
         for(i = 0; i < 3; i++){
-            if (CheckCollisionPointRec((Vector2){mouseX, mouseY}, recMenuOptions[i])) {
-               menuOption = i;
+            if(CheckCollisionPointRec(mousePos, recMenuOptions[i])){
+                menuOption = i;
+                printf("opcao: %d\n", i);
             }
         }
     }
 
-    for (i = 0; i < 3; i++) {
-        if (i == menuOption) {
-            DrawText(menuOptions[i], MAX_WIDTH / 2 - MeasureText(menuOptions[i], 20) / 2, 200 + i * 50, 20, RED);
-        } else {
-            DrawText(menuOptions[i], MAX_WIDTH / 2 - MeasureText(menuOptions[i], 20) / 2, 200 + i * 50, 20, BLACK);
-        }
-    }
     return menuOption;
 }
-int carregaMenuPrincipal(void){
-    int menuOption = 0;
-    menuOption = menuPrincipal();
 
-    return menuOption;
-}
 void iniciaJogo(void){
-    int menuOption;
-    menuOption = carregaMenuPrincipal();
-    if (menuOption == 0){
-        background = LoadTexture("sprites/background-min.png");
-        carregaTextJog();
-        carregaTextObstaculos();
-        criaPosicaoObstaculos();
-    }
+    background = LoadTexture("sprites/background-min.png");
+    carregaTextJog();
+    carregaTextObstaculos();
+    criaPosicaoObstaculos();
 
 
     harry.score = 0;
     gameOver = FALSE;
 
-
 }
-
 void desenhaMenu(void){
-    DrawRectangle(MAX_WIDTH/2, MAX_HEIGHT/2, 100, 50, WHITE);
+    int i = 0;
+    char* menuOptions[] = {"Start Game", "Options", "Exit"};
+
+    BeginDrawing();
+        for (i = 0; i < 3; i++) {
+            DrawRectangleRec(recMenuOptions[i], BLUE);
+            DrawText(menuOptions[i], recMenuOptions[i].x, recMenuOptions[i].y, 20, RED);
+        }
+
+    EndDrawing();
 
 }
-
-void menuJogo(void){
-
-
+void criaPosOpcMenu(void){
+    int i = 0;
+    char* menuOptions[] = {"Start Game", "Options", "Exit"};
+    for (i = 0; i < 3; i++) {
+        recMenuOptions[i] = (Rectangle) //x
+                                  {MAX_WIDTH / 2,
+                                   ((MAX_HEIGHT/ 2) + (100 * i)),
+                                   MeasureText(menuOptions[i],20),
+                                   30};
+    }
 }
+
+
 
 void carregaTextJog(void){
-    //Image harryImage = LoadImage("sprites/harry-broomstick.png");
     harry.jogador = LoadTexture("sprites/harry-broomstick.png");
-    //UnloadImage(harryImage);
     harry.posicao = (Vector2){POS_INIC_JOG_X, POS_INIC_JOG_Y};
-    harry.areaJogador.height = 0.5 * (harry.jogador.height);
-    harry.areaJogador.width = 0.5 * (harry.jogador.width);
-    harry.areaJogador.x = harry.posicao.x;
-    harry.areaJogador.y = harry.posicao.y;
+    harry.areaJogador.height = (harry.jogador.height)/3;
+    harry.areaJogador.width = 0.5 * (harry.jogador.width)/3;
+    harry.areaJogador.x = (harry.posicao.x) + 50;
+    harry.areaJogador.y = harry.posicao.y + 50;
 
 
 }
@@ -147,6 +142,8 @@ void desenhaJogador(void){
                    WHITE);
 
 }
+
+
 void carregaTextObstaculos(void){
     //Textura das torres
 
@@ -171,7 +168,7 @@ void criaPosicaoObstaculos(void){
         torresPos[i].y = GetRandomValue(450, 650);
 
         dementadorPos[i].x = 500 + 250*i;
-        dementadorPos[i].y = 800 - listaTorres[i].recTorre.height - torresPos[i].y - 200;
+        dementadorPos[i].y = torresPos[i].y - 330;
     }
     for(i = 0, j = 0; i < MAX_QTD_TORRES; i++, j++){
         if(j > 3){
@@ -182,8 +179,8 @@ void criaPosicaoObstaculos(void){
         listaTorres[i].posicao.y = torresPos[i].y;
         listaTorres[i].recTorre.x = listaTorres[i].posicao.x;
         listaTorres[i].recTorre.y = torresPos[i].y;
-        listaTorres[i].recTorre.height = listaTorres[i].textura.height;
-        listaTorres[i].recTorre.width = listaTorres[i].textura.width;
+        listaTorres[i].recTorre.height = listaTorres[i].textura.height - 70;
+        listaTorres[i].recTorre.width = listaTorres[i].textura.width - 70;
 
         listaTorres[i].passou = FALSE;
 
@@ -202,6 +199,7 @@ void desenhaObstaculos(void){
     int i = 0;
 
     for(i = 0; i < MAX_QTD_TORRES; i++){
+        DrawRectangleRec(listaTorres[i].recTorre, WHITE);
         DrawTextureEx(listaTorres[i].textura,listaTorres[i].posicao, 0, 0.6, WHITE);
 
         DrawTextureEx(listaDementadores[i].textura,listaDementadores[i].posicao, 0, 0.2, WHITE);
@@ -270,6 +268,7 @@ void jogoPorFrame(void){
         atualizaPosObstaculos();
         if (IsKeyDown(KEY_SPACE) && !gameOver){
             harry.rotationJogador = 0;
+
             if (harry.posicao.y >= 780){
                 harry.posicao.y = 780;
             }
@@ -314,16 +313,30 @@ int main(void){
     //Inicializa��o da janela do jogo
     InitWindow(MAX_WIDTH, MAX_HEIGHT,"Flappy Harry");
     SetTargetFPS(60);
-    iniciaJogo();
 
-    while(!WindowShouldClose()){
-
-        atualizaJogo();
-
+    criaPosOpcMenu();
+    for(int i =0; i< 3; i++){
+        printf("pos Rec %d: %f %f\n",i,recMenuOptions[i].x,recMenuOptions[i].y);
     }
 
-    unloadGame();
-    CloseWindow();
+    while(menuOption == -1){
+
+        menuOption = menuPrincipal();
+        desenhaMenu();
+
+    }
+    if(menuOption == 0){
+        iniciaJogo();
+
+        while(!WindowShouldClose()){
+
+            atualizaJogo();
+
+        }
+    }
+
+        unloadGame();
+        CloseWindow();
 
 
     return 0;
